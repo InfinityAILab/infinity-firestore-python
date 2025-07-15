@@ -78,6 +78,11 @@ class FirestoreQueryBuilder(Generic[T]):
         self._query = self._query.limit(count)
         return self
 
+    def offset(self, num_to_skip: int) -> "FirestoreQueryBuilder":
+        """Limit the number of results."""
+        self._query = self._query.offset(num_to_skip)
+        return self
+
     def build(self) -> CollectionReference | Query:
         """Return the built Firestore Query object."""
         return self._query
@@ -91,7 +96,8 @@ class FirestoreQueryBuilder(Generic[T]):
 class FirestoreRepository(Generic[T]):
     """Generic Firestore repository for CRUD operations with Pydantic models."""
 
-    def __init__(self, collection_name: str, model_class: Type[T]):
+    def __init__(self, database_name: str, collection_name: str, model_class: Type[T]):
+        self.database_name = database_name
         self.collection_name = collection_name
         self.model_class = model_class
         self._db: Client | None = None
@@ -100,7 +106,7 @@ class FirestoreRepository(Generic[T]):
     def db(self) -> Client:
         """Lazy initialization of Firestore client."""
         if self._db is None:
-            self._db = get_firestore_client()
+            self._db = get_firestore_client(self.database_name)
         return self._db
 
     @property
